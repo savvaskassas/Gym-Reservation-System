@@ -1,10 +1,16 @@
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
+const cors = require('cors');
 
-const userRoutes = require('./routes/userRoutes'); // Εισαγωγή των user routes
+const userRoutes = require('./routes/userRoutes');
+const trainerRoutes = require('./routes/trainerRoutes');
+const programRoutes = require('./routes/programRoutes');
+const announcementRoutes = require('./routes/announcementRoutes');
+const bookingRoutes = require('./routes/bookingRoutes'); // <-- προσθήκη!
 
 const app = express();
+app.use(cors()); // <-- αν χρειάζεσαι CORS
 app.use(express.json());
 
 mongoose.connect(process.env.MONGO_URI, {
@@ -14,11 +20,20 @@ mongoose.connect(process.env.MONGO_URI, {
 .then(() => console.log('MongoDB connected!'))
 .catch(err => console.log(err));
 
-// Χρησιμοποίησε τα user routes στο API prefix /api/users
 app.use('/api/users', userRoutes);
+app.use('/api/trainers', trainerRoutes);
+app.use('/api/programs', programRoutes);
+app.use('/api/announcements', announcementRoutes);
+app.use('/api/bookings', bookingRoutes); // <-- προσθήκη!
 
 app.get('/', (req, res) => {
   res.send('Gym reservation system API is running');
+});
+
+// Προαιρετικό error handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: 'Internal server error' });
 });
 
 const PORT = process.env.PORT || 5000;
