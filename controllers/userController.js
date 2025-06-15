@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 // Εγγραφή χρήστη
 exports.registerUser = async (req, res) => {
@@ -99,5 +100,31 @@ exports.loginUser = async (req, res) => {
     res.json({ message: 'Login successful', token, user: { id: user._id, username: user.username, role: user.role } });
   } catch (err) {
     res.status(500).json({ message: 'Login error' });
+  }
+};
+
+// Ενημέρωση χρήστη (admin only)
+exports.updateUser = async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+    if (!user) return res.status(404).json({ message: 'User not found.' });
+    res.json({ message: 'User updated.', user });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating user.' });
+  }
+};
+
+// Διαγραφή χρήστη (admin only)
+exports.deleteUser = async (req, res) => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) return res.status(404).json({ message: 'User not found.' });
+    res.json({ message: 'User deleted.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting user.' });
   }
 };
