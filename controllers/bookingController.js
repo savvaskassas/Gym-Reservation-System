@@ -6,11 +6,37 @@ function isWithinTwoHours(date) {
   return (new Date(date) - new Date()) < 2 * 60 * 60 * 1000;
 }
 
+// Βοηθητική για εύ εύρος εβδομάδας (Δευτέρα-Κυριακή)
+function getWeekRange(date) {
+  const d = new Date(date);
+  const day = d.getDay(); // 0: Κυριακή, 1: Δευτέρα, ..., 6: Σάββατο
+  const diffToMonday = d.getDate() - ((day + 6) % 7);
+  const monday = new Date(d.setDate(diffToMonday));
+  monday.setHours(0,0,0,0);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  sunday.setHours(23,59,59,999);
+  return { start: monday, end: sunday };
+}
+
 // Δημιουργία κράτησης
 exports.createBooking = async (req, res) => {
   try {
     const { programId, scheduleDate, day, time } = req.body;
     const userId = req.user._id; // αν δεν έχεις authentication, πάρε το userId από το body
+
+    // Υπολόγισε την εβδομάδα της ζητούμενης κράτησης
+    const { start, end } = getWeekRange(scheduleDate);
+
+    // Μέτρα ακυρώσεις του χρήστη αυτή την εβδομάδα
+    const cancellations = await Booking.countDocuments({
+      user: userId,
+      cancelled: true,
+      cancelledAt: { $gte: start, $lte: end }
+    });
+    if (cancellations >= 2) {
+      return res.status(400).json({ message: 'Έχετε φτάσει το όριο ακυρώσεων (2 ανά εβδομάδα). Δεν μπορείτε να κάνετε νέα κράτηση για αυτή την εβδομάδα.' });
+    }
 
     // Βρες το πρόγραμμα
     const program = await Program.findById(programId);
@@ -89,14 +115,17 @@ exports.cancelBooking = async (req, res) => {
       return res.status(400).json({ message: 'Cannot cancel less than 2 hours before start' });
     }
 
-    // Περιορισμός ακυρώσεων (μέγιστο 2 ακυρώσεις ανά πρόγραμμα)
+    // Υπολόγισε την εβδομάδα της κράτησης
+    const { start, end } = getWeekRange(booking.schedule.date);
+
+    // Μέτρα ακυρώσεις του χρήστη αυτή την εβδομάδα 
     const cancellations = await Booking.countDocuments({
       user: req.user._id,
-      program: booking.program,
-      cancelled: true
+      cancelled: true,
+      cancelledAt: { $gte: start, $lte: end }
     });
     if (cancellations >= 2) {
-      return res.status(400).json({ message: 'Cancellation limit reached for this program' });
+      return res.status(400).json({ message: 'Έχετε φτάσει το όριο ακυρώσεων (2 ανά εβδομάδα) για αυτή την εβδομάδα.' });
     }
 
     booking.cancelled = true;

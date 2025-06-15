@@ -3,14 +3,16 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
+// Routes
 const userRoutes = require('./routes/userRoutes');
 const trainerRoutes = require('./routes/trainerRoutes');
 const programRoutes = require('./routes/programRoutes');
 const announcementRoutes = require('./routes/announcementRoutes');
-const bookingRoutes = require('./routes/bookingRoutes'); // <-- προσθήκη!
+const bookingRoutes = require('./routes/bookingRoutes');
+const countryRoutes = require('./routes/countryRoutes'); 
 
 const app = express();
-app.use(cors()); // <-- αν χρειάζεσαι CORS
+app.use(cors());
 app.use(express.json());
 
 mongoose.connect(process.env.MONGO_URI, {
@@ -24,8 +26,8 @@ app.use('/api/users', userRoutes);
 app.use('/api/trainers', trainerRoutes);
 app.use('/api/programs', programRoutes);
 app.use('/api/announcements', announcementRoutes);
-app.use('/api/bookings', bookingRoutes); // <-- προσθήκη!
-
+app.use('/api/bookings', bookingRoutes);
+app.use('/api', countryRoutes); 
 app.get('/', (req, res) => {
   res.send('Gym reservation system API is running');
 });
