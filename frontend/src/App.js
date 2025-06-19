@@ -15,20 +15,20 @@ function App() {
   return (
     <Router>
       <nav>
-        {/* Navigation links, αλλάζει ανάλογα με το αν είναι authenticated και αν είναι admin */}
-        <Link to="/">Προγράμματα</Link>{" | "}
+        {/* Συνδέσμοι πλοήγησης, αλλάζει ανάλογα με το αν είναι authenticated και αν είναι admin */}
+        <Link to="/">Programs</Link>{" | "}
         {user ? (
           <>
-            <Link to="/bookings">Κρατήσεις</Link>{" | "}
-            <Link to="/announcements">Ανακοινώσεις</Link>{" | "}
-            {user.role === "admin" && <Link to="/admin">Διαχειριστής</Link>}
+            <Link to="/bookings">Bookings</Link>{" | "}
+            <Link to="/announcements">Announcements</Link>{" | "}
+            {user.role === "admin" && <Link to="/admin">Admin</Link>}
             {" | "}
-            <button onClick={logout}>Αποσύνδεση</button>
+            <button onClick={logout}>Logout</button>
           </>
         ) : (
           <>
-            <Link to="/login">Σύνδεση</Link>{" | "}
-            <Link to="/register">Εγγραφή</Link>
+            <Link to="/login">Login</Link>{" | "}
+            <Link to="/register">Register</Link>
           </>
         )}
       </nav>

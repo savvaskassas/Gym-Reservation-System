@@ -1,6 +1,6 @@
 const Trainer = require('../models/Trainer');
 
-// Create Trainer
+// Δημιουργία γυμναστή
 exports.createTrainer = async (req, res) => {
   try {
     const trainer = new Trainer(req.body);
@@ -11,7 +11,7 @@ exports.createTrainer = async (req, res) => {
   }
 };
 
-// Get all Trainers
+// Λήψη όλων των γυμναστών
 exports.getAllTrainers = async (req, res) => {
   try {
     const trainers = await Trainer.find();
@@ -21,7 +21,7 @@ exports.getAllTrainers = async (req, res) => {
   }
 };
 
-// Get Trainer by ID
+// Λήψη γυμναστή βάση id
 exports.getTrainerById = async (req, res) => {
   try {
     const trainer = await Trainer.findById(req.params.id);
@@ -32,7 +32,7 @@ exports.getTrainerById = async (req, res) => {
   }
 };
 
-// Update Trainer
+// Ενημέρωση γυμναστή
 exports.updateTrainer = async (req, res) => {
   try {
     const trainer = await Trainer.findByIdAndUpdate(req.params.id, req.body, { new: true });
@@ -43,7 +43,7 @@ exports.updateTrainer = async (req, res) => {
   }
 };
 
-// Delete Trainer
+// Διαγραφή γυμναστή
 exports.deleteTrainer = async (req, res) => {
   try {
     const trainer = await Trainer.findByIdAndDelete(req.params.id);

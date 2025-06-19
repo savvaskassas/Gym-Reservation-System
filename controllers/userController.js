@@ -10,13 +10,13 @@ exports.registerUser = async (req, res) => {
     // Έλεγχος αν υπάρχει ήδη χρήστης με ίδιο email ή username
     const existingUser = await User.findOne({ $or: [{ email }, { username }] });
     if (existingUser) {
-      return res.status(400).json({ message: 'Υπάρχει ήδη χρήστης με αυτό το email ή username.' });
+      return res.status(400).json({ message: 'A user with this email or username already exists.' });
     }
 
     // Κρυπτογράφηση κωδικού
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Δημιουργία νέου χρήστη με status: 'pending' (εκκρεμεί έγκριση)
+    // Δημιουργία νέου χρήστη με status: 'pending'
     const user = new User({
       firstName,
       lastName,
@@ -26,26 +26,25 @@ exports.registerUser = async (req, res) => {
       email,
       username,
       password: hashedPassword,
-      // role παίρνει το default value ('user') από το schema
-      status: 'pending' // Δηλώνει ότι το αίτημα είναι σε αναμονή
+      status: 'pending'
     });
 
     await user.save();
-    res.status(201).json({ message: 'Το αίτημα εγγραφής καταχωρήθηκε. Αναμείνατε έγκριση από διαχειριστή.' });
+    res.status(201).json({ message: 'Your registration request has been submitted. Please wait for admin approval.' });
   } catch (error) {
-    console.error('Σφάλμα εγγραφής:', error);
-    res.status(500).json({ message: 'Σφάλμα διακομιστή κατά την εγγραφή.' });
+    console.error('Registration error:', error);
+    res.status(500).json({ message: 'Server error during registration.' });
   }
 };
 
-// Λήψη λίστας χρηστών που περιμένουν έγκριση (status: 'pending')
+// Λήψη χρηστών με status 'pending'
 exports.getPendingUsers = async (req, res) => {
   try {
     const users = await User.find({ status: 'pending' });
     res.json(users);
   } catch (error) {
-    console.error('Σφάλμα λήψης εκκρεμών χρηστών:', error);
-    res.status(500).json({ message: 'Σφάλμα κατά τη λήψη των εκκρεμών χρηστών.' });
+    console.error('Error fetching pending users:', error);
+    res.status(500).json({ message: 'Error fetching pending users.' });
   }
 };
 
@@ -57,18 +56,15 @@ exports.approveUser = async (req, res) => {
       { status: 'approved', role: req.body.role || 'user' },
       { new: true }
     );
-    if (!user) return res.status(404).json({ message: 'Ο χρήστης δεν βρέθηκε.' });
-    res.json({ message: 'Ο χρήστης εγκρίθηκε.', user });
+    if (!user) return res.status(404).json({ message: 'User not found.' });
+    res.json({ message: 'User approved.', user });
   } catch (error) {
-    console.error('Σφάλμα έγκρισης χρήστη:', error);
-    res.status(500).json({ message: 'Σφάλμα κατά την έγκριση χρήστη.' });
+    console.error('Error approving user:', error);
+    res.status(500).json({ message: 'Error approving user.' });
   }
 };
 
 // Απόρριψη χρήστη (status: 'rejected')
-// Εδώ προτείνεται να ΜΗΝ διαγράφεις τον χρήστη, αλλά να ενημερώνεις το status.
-// Αν θες να διαγράφεις, χρησιμοποίησε findByIdAndDelete.
-// Παρακάτω γίνεται ενημέρωση του status:
 exports.rejectUser = async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(
@@ -76,30 +72,30 @@ exports.rejectUser = async (req, res) => {
       { status: 'rejected' },
       { new: true }
     );
-    if (!user) return res.status(404).json({ message: 'Ο χρήστης δεν βρέθηκε.' });
-    res.json({ message: 'Ο χρήστης απορρίφθηκε.', user });
+    if (!user) return res.status(404).json({ message: 'User not found.' });
+    res.json({ message: 'User rejected.', user });
   } catch (error) {
-    console.error('Σφάλμα απόρριψης χρήστη:', error);
-    res.status(500).json({ message: 'Σφάλμα κατά την απόρριψη χρήστη.' });
+    console.error('Error rejecting user:', error);
+    res.status(500).json({ message: 'Error rejecting user.' });
   }
 };
 
-// Είσοδος χρήστη (login) — επιτρέπεται μόνο αν status === 'approved'
+// Σύνδεση χρήστη (επιτρέπεται μόνο αν είναι εγκεκριμένος)
 exports.loginUser = async (req, res) => {
   const { username, password } = req.body;
   try {
-    // Βρες τον χρήστη
+    // Εύρεση χρήστη
     const user = await User.findOne({ username });
-    if (!user) return res.status(400).json({ message: 'Λάθος στοιχεία σύνδεσης.' });
+    if (!user) return res.status(400).json({ message: 'Invalid login credentials.' });
 
     // Έλεγχος αν είναι εγκεκριμένος
     if (user.status !== 'approved') {
-      return res.status(403).json({ message: 'Ο λογαριασμός σας δεν έχει εγκριθεί ακόμα.' });
+      return res.status(403).json({ message: 'Your account has not been approved yet.' });
     }
 
-    // Έλεγχος password
+    // Έλεγχος κωδικού
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: 'Λάθος στοιχεία σύνδεσης.' });
+    if (!isMatch) return res.status(400).json({ message: 'Invalid login credentials.' });
 
     // Δημιουργία JWT
     const token = jwt.sign(
@@ -108,13 +104,13 @@ exports.loginUser = async (req, res) => {
       { expiresIn: '1d' }
     );
 
-    res.json({ message: 'Επιτυχής σύνδεση', token, user: { id: user._id, username: user.username, role: user.role } });
+    res.json({ message: 'Login successful.', token, user: { id: user._id, username: user.username, role: user.role } });
   } catch (err) {
-    res.status(500).json({ message: 'Σφάλμα κατά τη σύνδεση.' });
+    res.status(500).json({ message: 'Login error.' });
   }
 };
 
-// Ενημέρωση χρήστη (μόνο admin)
+// Ενημέρωση στοιχείων χρήστη (admin μόνο)
 exports.updateUser = async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(
@@ -122,20 +118,20 @@ exports.updateUser = async (req, res) => {
       req.body,
       { new: true }
     );
-    if (!user) return res.status(404).json({ message: 'Ο χρήστης δεν βρέθηκε.' });
-    res.json({ message: 'Ο χρήστης ενημερώθηκε.', user });
+    if (!user) return res.status(404).json({ message: 'User not found.' });
+    res.json({ message: 'User updated.', user });
   } catch (error) {
-    res.status(500).json({ message: 'Σφάλμα κατά την ενημέρωση χρήστη.' });
+    res.status(500).json({ message: 'Error updating user.' });
   }
 };
 
-// Διαγραφή χρήστη (μόνο admin)
+// Διαγραφή χρήστη (admin μόνο)
 exports.deleteUser = async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
-    if (!user) return res.status(404).json({ message: 'Ο χρήστης δεν βρέθηκε.' });
-    res.json({ message: 'Ο χρήστης διαγράφηκε.' });
+    if (!user) return res.status(404).json({ message: 'User not found.' });
+    res.json({ message: 'User deleted.' });
   } catch (error) {
-    res.status(500).json({ message: 'Σφάλμα κατά τη διαγραφή χρήστη.' });
+    res.status(500).json({ message: 'Error deleting user.' });
   }
 };

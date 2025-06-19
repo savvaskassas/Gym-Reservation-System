@@ -1,6 +1,6 @@
 const Program = require('../models/Program');
 
-// Create Program
+// Δημιουργία προγράμματος
 exports.createProgram = async (req, res) => {
   try {
     const program = new Program(req.body);
@@ -11,7 +11,7 @@ exports.createProgram = async (req, res) => {
   }
 };
 
-// Get all Programs
+// Λήψη όλων των προγραμμάτων
 exports.getAllPrograms = async (req, res) => {
   try {
     const programs = await Program.find().populate('schedule.trainer');
@@ -21,7 +21,7 @@ exports.getAllPrograms = async (req, res) => {
   }
 };
 
-// Get Program by ID
+// Λήψη προγράμματος με id
 exports.getProgramById = async (req, res) => {
   try {
     const program = await Program.findById(req.params.id).populate('schedule.trainer');
@@ -32,7 +32,7 @@ exports.getProgramById = async (req, res) => {
   }
 };
 
-// Update Program
+// Ενημέρωση προγράμματος
 exports.updateProgram = async (req, res) => {
   try {
     const program = await Program.findByIdAndUpdate(req.params.id, req.body, { new: true });
@@ -43,7 +43,7 @@ exports.updateProgram = async (req, res) => {
   }
 };
 
-// Delete Program
+// Διαγραφή προγράμματος
 exports.deleteProgram = async (req, res) => {
   try {
     const program = await Program.findByIdAndDelete(req.params.id);
@@ -54,9 +54,9 @@ exports.deleteProgram = async (req, res) => {
   }
 };
 
-// ----------------------- SLOTS CRUD -----------------------
+// -------------------- SLOTS CRUD --------------------
 
-// Add Slot to Program
+// Προσθήκη slot σε πρόγραμμα
 exports.addSlot = async (req, res) => {
   try {
     const program = await Program.findById(req.params.id);
@@ -69,7 +69,7 @@ exports.addSlot = async (req, res) => {
   }
 };
 
-// Update Slot in Program
+// Ενημέρωση slot σε πρόγραμμα
 exports.updateSlot = async (req, res) => {
   try {
     const { programId, slotId } = req.params;
@@ -86,7 +86,7 @@ exports.updateSlot = async (req, res) => {
   }
 };
 
-// Delete Slot from Program
+// Διαγραφή slot από πρόγραμμα
 exports.deleteSlot = async (req, res) => {
   try {
     const { programId, slotId } = req.params;

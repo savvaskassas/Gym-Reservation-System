@@ -3,25 +3,25 @@ const router = express.Router();
 const userController = require('../controllers/userController');
 const { requireAuth, requireRole } = require('../middleware/auth');
 
-// Route για εγγραφή χρήστη
+// Εγγραφή χρήστη
 router.post('/register', userController.registerUser);
 
-// Route για λίστα χρηστών που περιμένουν έγκριση
+// Λίστα εκκρεμών χρηστών (μόνο για admin)
 router.get('/pending', requireAuth, requireRole('admin'), userController.getPendingUsers);
 
-// Route για έγκριση χρήστη
+// Έγκριση χρήστη (admin)
 router.put('/approve/:id', requireAuth, requireRole('admin'), userController.approveUser);
 
-// Route για απόρριψη/διαγραφή χρήστη
+// Απόρριψη χρήστη (admin)
 router.delete('/reject/:id', requireAuth, requireRole('admin'), userController.rejectUser);
 
-// Route για login χρήστη
+// Σύνδεση χρήστη
 router.post('/login', userController.loginUser);
 
-// Update user (admin only)
+// Ενημέρωση χρήστη (admin)
 router.put('/:id', requireAuth, requireRole('admin'), userController.updateUser);
 
-// Delete user (admin only)
+// Διαγραφή χρήστη (admin)
 router.delete('/:id', requireAuth, requireRole('admin'), userController.deleteUser);
 
 module.exports = router;

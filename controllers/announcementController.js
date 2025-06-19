@@ -1,6 +1,6 @@
 const Announcement = require('../models/Announcement');
 
-// Create Announcement
+// Δημιουργία ανακοίνωσης
 exports.createAnnouncement = async (req, res) => {
   try {
     const announcement = new Announcement(req.body);
@@ -11,7 +11,7 @@ exports.createAnnouncement = async (req, res) => {
   }
 };
 
-// Get all Announcements
+// Λήψη όλων των ανακοινώσεων
 exports.getAllAnnouncements = async (req, res) => {
   try {
     const announcements = await Announcement.find().sort({ createdAt: -1 });
@@ -21,7 +21,7 @@ exports.getAllAnnouncements = async (req, res) => {
   }
 };
 
-// Get Announcement by ID
+// Λήψη ανακοίνωσης με id
 exports.getAnnouncementById = async (req, res) => {
   try {
     const announcement = await Announcement.findById(req.params.id);
@@ -32,7 +32,7 @@ exports.getAnnouncementById = async (req, res) => {
   }
 };
 
-// Update Announcement
+// Ενημέρωση ανακοίνωσης
 exports.updateAnnouncement = async (req, res) => {
   try {
     const announcement = await Announcement.findByIdAndUpdate(req.params.id, req.body, { new: true });
@@ -43,7 +43,7 @@ exports.updateAnnouncement = async (req, res) => {
   }
 };
 
-// Delete Announcement
+// Διαγραφή ανακοίνωσης
 exports.deleteAnnouncement = async (req, res) => {
   try {
     const announcement = await Announcement.findByIdAndDelete(req.params.id);

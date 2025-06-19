@@ -23,7 +23,7 @@ function getWeekRange(date) {
 exports.createBooking = async (req, res) => {
   try {
     const { programId, scheduleDate, day, time } = req.body;
-    const userId = req.user._id; // αν δεν έχεις authentication, πάρε το userId από το body
+    const userId = req.user._id;
 
     // Υπολόγισε την εβδομάδα της ζητούμενης κράτησης
     const { start, end } = getWeekRange(scheduleDate);
@@ -35,7 +35,7 @@ exports.createBooking = async (req, res) => {
       cancelledAt: { $gte: start, $lte: end }
     });
     if (cancellations >= 2) {
-      return res.status(400).json({ message: 'Έχετε φτάσει το όριο ακυρώσεων (2 ανά εβδομάδα). Δεν μπορείτε να κάνετε νέα κράτηση για αυτή την εβδομάδα.' });
+      return res.status(400).json({ message: 'You have reached the cancellation limit (2 per week). You cannot make a new booking for this week.' });
     }
 
     // Βρες το πρόγραμμα
@@ -60,7 +60,7 @@ exports.createBooking = async (req, res) => {
       return res.status(400).json({ message: 'No seats available' });
     }
 
-    // Έλεγξε αν ο χρήστης έχει ήδη κράτηση σε αυτή τη μέρα/ώρα/πρόγραμμα (προαιρετικό)
+    // Έλεγξε αν ο χρήστης έχει ήδη κράτηση σε αυτή τη μέρα/ώρα/πρόγραμμα
     const existing = await Booking.findOne({
       user: userId,
       program: programId,
@@ -89,7 +89,7 @@ exports.createBooking = async (req, res) => {
 // Ιστορικό κρατήσεων του χρήστη
 exports.getMyBookings = async (req, res) => {
   try {
-    const userId = req.user._id; // αν δεν έχεις auth βάζεις req.body.userId
+    const userId = req.user._id;
     const bookings = await Booking.find({ user: userId })
       .populate('program')
       .sort({ createdAt: -1 });
@@ -125,7 +125,7 @@ exports.cancelBooking = async (req, res) => {
       cancelledAt: { $gte: start, $lte: end }
     });
     if (cancellations >= 2) {
-      return res.status(400).json({ message: 'Έχετε φτάσει το όριο ακυρώσεων (2 ανά εβδομάδα) για αυτή την εβδομάδα.' });
+      return res.status(400).json({ message: 'You have reached the cancellation limit (2 per week) for this week.' });
     }
 
     booking.cancelled = true;
