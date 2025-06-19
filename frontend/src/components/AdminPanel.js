@@ -1,54 +1,40 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import React, { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
+import PendingUsers from "./PendingUsers"; // Υποθέτουμε ότι έχει μεταφερθεί σε ξεχωριστό αρχείο
+import UserManagement from "./UserManagement";
+import TrainerManagement from "./TrainerManagement";
+import ProgramManagement from "./ProgramManagement";
+import AnnouncementManagement from "./AnnouncementManagement";
+// Για SlotManagement θα χρειαστεί επιλογή προγράμματος, δες σημείωση παρακάτω
 
-// Component για εμφάνιση και διαχείριση χρηστών που περιμένουν έγκριση
-function PendingUsers() {
-  const [pending, setPending] = useState([]);
+// Κύριο πάνελ διαχειριστή – επιλογή εργαλείων admin UI
+export default function AdminPanel() {
+  // Το view καθορίζει ποιο admin component εμφανίζεται
+  const [view, setView] = useState("pending");
   const { user } = useAuth();
 
-  // Φόρτωσε τους χρήστες που περιμένουν έγκριση όταν φορτώσει το component ή αλλάξει το token
-  useEffect(() => {
-    axios.get("/api/users/pending", {
-      headers: { Authorization: `Bearer ${user.token}` }
-    }).then(res => setPending(res.data));
-  }, [user.token]);
-
-  // Έγκριση χρήστη (μετά το approve, αφαιρεί τον χρήστη από τη λίστα)
-  const approve = (id) => {
-    axios.put(`/api/users/approve/${id}`, {}, {
-      headers: { Authorization: `Bearer ${user.token}` }
-    }).then(() => setPending(p => p.filter(u => u._id !== id)));
-  };
-
-  // Απόρριψη/Διαγραφή χρήστη (μετά το reject, αφαιρεί τον χρήστη από τη λίστα)
-  const reject = (id) => {
-    axios.delete(`/api/users/reject/${id}`, {
-      headers: { Authorization: `Bearer ${user.token}` }
-    }).then(() => setPending(p => p.filter(u => u._id !== id)));
-  };
+  // Αν δεν είναι admin, δεν έχει πρόσβαση
+  if (!user || user.role !== "admin") {
+    return <div>Access denied. Only admins can view this page.</div>;
+  }
 
   return (
     <div>
-      <h3>Αιτήματα εγγραφής</h3>
-      {/* Εμφανίζει κάθε χρήστη που περιμένει έγκριση με κουμπιά έγκρισης/απόρριψης */}
-      {pending.map(u => (
-        <div key={u._id}>
-          {u.username} ({u.email})
-          <button onClick={() => approve(u._id)}>Έγκριση</button>
-          <button onClick={() => reject(u._id)}>Απόρριψη</button>
-        </div>
-      ))}
-    </div>
-  );
-}
+      <h2>Admin Panel</h2>
+      {/* Κουμπιά πλοήγησης */}
+      <button onClick={() => setView("pending")}>Registration Requests</button>
+      <button onClick={() => setView("users")}>Users</button>
+      <button onClick={() => setView("trainers")}>Trainers</button>
+      <button onClick={() => setView("programs")}>Programs</button>
+      <button onClick={() => setView("announcements")}>Announcements</button>
+      {/* Αν θέλεις να προσθέσεις SlotManagement, θα πρέπει να επιλέγεται πρόγραμμα και να δίνεται το programId ως prop */}
 
-// Κύριο Admin Panel, όπου μπορείς να προσθέσεις και άλλες λειτουργίες admin (trainers, programs, announcements, users CRUD)
-export default function AdminPanel() {
-  return (
-    <div>
-      <h2>Πάνελ Διαχειριστή</h2>
-      <PendingUsers />
+      {/* Εμφάνιση του επιλεγμένου admin component */}
+      {view === "pending" && <PendingUsers />}
+      {view === "users" && <UserManagement />}
+      {view === "trainers" && <TrainerManagement />}
+      {view === "programs" && <ProgramManagement />}
+      {view === "announcements" && <AnnouncementManagement />}
     </div>
   );
 }
