@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "../hooks/useAuth";
+import SlotManagement from "./SlotManagement"; // import the component
 
 // Διαχείριση προγραμμάτων: CRUD λειτουργίες
 export default function ProgramManagement() {
@@ -9,6 +10,9 @@ export default function ProgramManagement() {
   const [trainers, setTrainers] = useState([]);
   const [msg, setMsg] = useState("");
   const { user } = useAuth();
+
+  // state για να trackάρεις ποια προγράμματα έχουν ανοιχτά τα slots
+  const [openSlots, setOpenSlots] = useState({});
 
   // Φόρτωση προγραμμάτων και γυμναστών κατά το mount
   useEffect(() => {
@@ -41,6 +45,11 @@ export default function ProgramManagement() {
       });
   };
 
+  // Εναλλαγή εμφάνισης slots για κάθε πρόγραμμα
+  const toggleSlots = (programId) => {
+    setOpenSlots(prev => ({ ...prev, [programId]: !prev[programId] }));
+  };
+
   return (
     <div>
       <h3>Program Management</h3>
@@ -55,9 +64,19 @@ export default function ProgramManagement() {
       </form>
       {msg && <div>{msg}</div>}
       {programs.map(p => (
-        <div key={p._id}>
-          {p.name} ({p.type})
-          <button onClick={() => deleteProgram(p._id)}>Delete</button>
+        <div key={p._id} style={{ marginBottom: "1em", border: "1px solid #ddd", padding: "1em" }}>
+          <div>
+            <b>{p.name}</b> ({p.type})
+            <button onClick={() => deleteProgram(p._id)} style={{ marginLeft: 8 }}>Delete</button>
+            <button onClick={() => toggleSlots(p._id)} style={{ marginLeft: 8 }}>
+              {openSlots[p._id] ? "Hide Slots" : "Manage Slots"}
+            </button>
+          </div>
+          {openSlots[p._id] && (
+            <div style={{ marginTop: 8 }}>
+              <SlotManagement programId={p._id} />
+            </div>
+          )}
         </div>
       ))}
     </div>

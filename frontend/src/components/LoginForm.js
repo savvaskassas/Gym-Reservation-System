@@ -30,15 +30,17 @@ export default function LoginForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <label>Username:</label>
-      <input value={username} onChange={e => setUsername(e.target.value)} required />
-      <label>Password:</label>
-      <input type="password" value={password} onChange={e => setPassword(e.target.value)} required />
-      <button type="submit">Login</button>
-      {/* Εμφάνιση μηνύματος */}
-      {msg && <div style={{ color: "green" }}>{msg}</div>}
-      {error && <div style={{ color: "red" }}>{error}</div>}
-    </form>
+    <div className="form-card">
+      <form onSubmit={handleSubmit}>
+        <label>Username:</label>
+        <input value={username} onChange={e => setUsername(e.target.value)} required />
+        <label>Password:</label>
+        <input type="password" value={password} onChange={e => setPassword(e.target.value)} required />
+        <button type="submit">Login</button>
+        {/* Εμφάνιση μηνύματος */}
+        {msg && <div style={{ color: "green" }}>{msg}</div>}
+        {error && <div style={{ color: "red" }}>{error}</div>}
+      </form>
+    </div>
   );
 }

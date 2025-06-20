@@ -15,6 +15,9 @@ router.put('/approve/:id', requireAuth, requireRole('admin'), userController.app
 // Απόρριψη χρήστη (admin)
 router.delete('/reject/:id', requireAuth, requireRole('admin'), userController.rejectUser);
 
+// Λίστα όλων των χρηστών (μόνο για admin) 
+router.get('/', requireAuth, requireRole('admin'), userController.getAllUsers);
+
 // Σύνδεση χρήστη
 router.post('/login', userController.loginUser);
 

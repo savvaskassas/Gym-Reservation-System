@@ -48,6 +48,18 @@ exports.getPendingUsers = async (req, res) => {
   }
 };
 
+// Λήψη μόνο approved χρηστών (User Management) 
+exports.getAllUsers = async (req, res) => {
+  try {
+    // Μόνο εγκεκριμένοι χρήστες
+    const users = await User.find({ status: 'approved' });
+    res.json(users);
+  } catch (error) {
+    console.error('Error fetching all users:', error);
+    res.status(500).json({ message: 'Error fetching all users.' });
+  }
+};
+
 // Έγκριση χρήστη (status: 'approved', επιλογή ρόλου)
 exports.approveUser = async (req, res) => {
   try {

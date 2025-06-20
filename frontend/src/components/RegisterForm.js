@@ -66,25 +66,27 @@ export default function RegisterForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>User Registration</h2>
-      {message && <div style={{ color: "green" }}>{message}</div>}
-      {error && <div style={{ color: "red" }}>{error}</div>}
-      <input name="firstName" value={form.firstName} onChange={handleChange} required placeholder="First Name" /><br/>
-      <input name="lastName" value={form.lastName} onChange={handleChange} required placeholder="Last Name" /><br/>
-      <select name="country" value={form.country} onChange={handleChange} required>
-        <option value="">Country</option>
-        {countries.map(c => <option key={c} value={c}>{c}</option>)}
-      </select><br/>
-      <select name="city" value={form.city} onChange={handleChange} required disabled={!form.country}>
-        <option value="">City</option>
-        {cities.map(city => <option key={city} value={city}>{city}</option>)}
-      </select><br/>
-      <input name="address" value={form.address} onChange={handleChange} required placeholder="Address" /><br/>
-      <input name="email" value={form.email} onChange={handleChange} required type="email" placeholder="Email" /><br/>
-      <input name="username" value={form.username} onChange={handleChange} required placeholder="Username" /><br/>
-      <input name="password" value={form.password} onChange={handleChange} required type="password" placeholder="Password" /><br/>
-      <button type="submit">Register</button>
-    </form>
+    <div className="form-card">
+      <form onSubmit={handleSubmit}>
+        <h2>User Registration</h2>
+        {message && <div style={{ color: "green" }}>{message}</div>}
+        {error && <div style={{ color: "red" }}>{error}</div>}
+        <input name="firstName" value={form.firstName} onChange={handleChange} required placeholder="First Name" /><br/>
+        <input name="lastName" value={form.lastName} onChange={handleChange} required placeholder="Last Name" /><br/>
+        <select name="country" value={form.country} onChange={handleChange} required>
+          <option value="">Country</option>
+          {countries.map(c => <option key={c} value={c}>{c}</option>)}
+        </select><br/>
+        <select name="city" value={form.city} onChange={handleChange} required disabled={!form.country}>
+          <option value="">City</option>
+          {cities.map(city => <option key={city} value={city}>{city}</option>)}
+        </select><br/>
+        <input name="address" value={form.address} onChange={handleChange} required placeholder="Address" /><br/>
+        <input name="email" value={form.email} onChange={handleChange} required type="email" placeholder="Email" /><br/>
+        <input name="username" value={form.username} onChange={handleChange} required placeholder="Username" /><br/>
+        <input name="password" value={form.password} onChange={handleChange} required type="password" placeholder="Password" /><br/>
+        <button type="submit">Register</button>
+      </form>
+    </div>
   );
 }
