@@ -39,13 +39,15 @@ nav a, .navbar a, .nav-link {
   color: #fff;
   text-decoration: none;
   padding: 5px 14px;
-  border-radius: 5px;
+  border-radius: 6px;
   font-weight: 600;
-  transition: background 0.18s;
+  transition: background 0.18s, color 0.18s;
+  margin: 0 2px;
 }
 
 nav a:hover, .navbar a:hover, .nav-link.active {
   background: #31405c;
+  color: #ffe;
 }
 
 /* ====== FORM CONTAINER (Login/Register) ====== */
@@ -95,24 +97,46 @@ input:focus, select:focus, textarea:focus {
   background: #fff;
 }
 
+/* ====== BUTTONS ====== */
 button, .btn {
   background: linear-gradient(90deg, #4066d4 0%, #3146a4 100%);
   color: #fff;
   border: none;
-  padding: 0.7rem 0;
-  border-radius: 7px;
-  font-size: 1.07rem;
+  padding: 0.68rem 1.6rem;
+  border-radius: 9px;
+  font-size: 1.09rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.18s, box-shadow 0.18s;
-  margin-top: 8px;
-  box-shadow: 0 2px 6px #4066d42f;
+  transition: background 0.18s, box-shadow 0.18s, transform 0.12s;
+  margin: 0 0.23rem;
+  box-shadow: 0 2px 8px #4066d42a;
   letter-spacing: 0.5px;
+  display: inline-block;
 }
 
 button:hover, .btn:hover {
   background: linear-gradient(90deg, #3146a4 0%, #4066d4 100%);
-  box-shadow: 0 4px 14px #4066d43a;
+  box-shadow: 0 4px 16px #4066d44a;
+  transform: translateY(-2px) scale(1.04);
+}
+
+/* ====== BUTTON GROUPS ====== */
+.btn-group {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.8rem;
+}
+
+.btn-group .btn,
+.btn-group button {
+  margin: 0; /* override button margin when inside group */
+}
+
+/* Για κάθετες ομάδες */
+.btn-group-vertical {
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 /* ====== TITLES ====== */
@@ -207,3 +231,15 @@ a:hover {
   0% { transform: rotate(0deg);}
   100% { transform: rotate(360deg);}
 }
+
+.card {
+  background: #fff;
+  border-radius: 17px;
+  box-shadow: 0 6px 32px #2c36541a, 0 1.5px 8px #4066d433;
+  padding: 2.1rem 2rem 1.7rem 2rem;
+  margin: 2.5rem auto 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+

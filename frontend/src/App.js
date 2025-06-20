@@ -6,21 +6,24 @@ import ProgramList from "./components/ProgramList";
 import Bookings from "./components/Bookings";
 import Announcements from "./components/Announcements";
 import AdminPanel from "./components/AdminPanel";
+import Welcome from "./components/Welcome";
 import { useAuth } from "./hooks/useAuth";
 
-// Βασικό component με navigation και routing για όλο το frontend
+// Κύριο component που περιέχει navigation και routing για όλο το frontend
 function App() {
   const { user, logout } = useAuth();
 
   return (
     <Router>
+      {/* Navigation bar - εμφανίζει διαφορετικά links ανάλογα με το αν ο χρήστης είναι authenticated */}
       <nav>
-        {/* Συνδέσμοι πλοήγησης, αλλάζει ανάλογα με το αν είναι authenticated και αν είναι admin */}
-        <Link to="/">Programs</Link>{" | "}
+        <Link to="/">Home</Link>{" | "}
+        <Link to="/programs">Programs</Link>{" | "}
         {user ? (
           <>
             <Link to="/bookings">Bookings</Link>{" | "}
             <Link to="/announcements">Announcements</Link>{" | "}
+            {/* Εμφανίζει το admin link αν ο χρήστης είναι admin */}
             {user.role === "admin" && <Link to="/admin">Admin</Link>}
             {" | "}
             <button onClick={logout}>Logout</button>
@@ -33,9 +36,11 @@ function App() {
         )}
       </nav>
       <Routes>
-        <Route path="/" element={<ProgramList />} />
+        <Route path="/" element={<Welcome />} />
+        <Route path="/programs" element={<ProgramList />} />
         <Route path="/register" element={<RegisterForm />} />
         <Route path="/login" element={<LoginForm />} />
+        {/* Τα παρακάτω routes είναι προστατευμένα - χρειάζονται authentication */}
         <Route path="/bookings" element={user ? <Bookings /> : <Navigate to="/login" />} />
         <Route path="/announcements" element={user ? <Announcements /> : <Navigate to="/login" />} />
         <Route path="/admin/*" element={user && user.role === "admin" ? <AdminPanel /> : <Navigate to="/login" />} />

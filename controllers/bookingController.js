@@ -23,7 +23,7 @@ function getWeekRange(date) {
 exports.createBooking = async (req, res) => {
   try {
     const { programId, scheduleDate, day, time } = req.body;
-    const userId = req.user._id;
+    const userId = req.user.id;
 
     // Υπολόγισε την εβδομάδα της ζητούμενης κράτησης
     const { start, end } = getWeekRange(scheduleDate);
@@ -89,7 +89,7 @@ exports.createBooking = async (req, res) => {
 // Ιστορικό κρατήσεων του χρήστη
 exports.getMyBookings = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.id;
     const bookings = await Booking.find({ user: userId })
       .populate('program')
       .sort({ createdAt: -1 });
@@ -106,7 +106,7 @@ exports.cancelBooking = async (req, res) => {
     if (!booking) return res.status(404).json({ message: 'Booking not found' });
 
     // Μόνο ο χρήστης που έκανε την κράτηση μπορεί να ακυρώσει
-    if (String(booking.user) !== String(req.user._id)) {
+    if (String(booking.user) !== String(req.user.id)) {
       return res.status(403).json({ message: 'Not authorized to cancel this booking' });
     }
 

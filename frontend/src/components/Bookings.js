@@ -2,32 +2,47 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "../hooks/useAuth";
 
-// Εμφάνιση και διαχείριση κρατήσεων χρήστη
+// Helper: Βρες την επόμενη ημερομηνία που αντιστοιχεί σε dayOfWeek (Monday, Tuesday, Δευτέρα κλπ)
+function getNextDateOfWeek(dayOfWeek) {
+  const daysMap = {
+    "Sunday": 0, "Monday": 1, "Tuesday": 2, "Wednesday": 3,
+    "Thursday": 4, "Friday": 5, "Saturday": 6,
+    "Κυριακή": 0, "Δευτέρα": 1, "Τρίτη": 2, "Τετάρτη": 3,
+    "Πέμπτη": 4, "Παρασκευή": 5, "Σάββατο": 6
+  };
+  const today = new Date();
+  const todayDay = today.getDay(); // 0: Κυριακή, 1: Δευτέρα, ..., 6: Σάββατο
+  const targetDay = daysMap[dayOfWeek];
+  if (targetDay === undefined) return null;
+  let daysToAdd = (targetDay - todayDay + 7) % 7;
+  if (daysToAdd === 0) daysToAdd = 7;
+  const nextDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + daysToAdd);
+  return nextDate.toISOString().slice(0, 10);
+}
+
 export default function Bookings() {
-  const [programs, setPrograms] = useState([]); // Όλα τα προγράμματα
-  const [slots, setSlots] = useState([]); // Όλα τα slots του τρέχοντος προγράμματος
-  const [myBookings, setMyBookings] = useState([]); // Οι κρατήσεις του χρήστη
-  const [selected, setSelected] = useState({ program: "", slot: "", date: "" });
-  const [msg, setMsg] = useState(""); // Μηνύματα επιτυχίας/σφάλματος
-  const [error, setError] = useState(""); // Μήνυμα λάθους
+  const [programs, setPrograms] = useState([]);
+  const [slots, setSlots] = useState([]);
+  const [myBookings, setMyBookings] = useState([]);
+  const [selected, setSelected] = useState({ program: "", slot: "" });
+  const [msg, setMsg] = useState("");
+  const [error, setError] = useState("");
   const { user } = useAuth();
 
-  // Φέρνουμε τα προγράμματα και τις κρατήσεις μόλις φορτώσει το component
   useEffect(() => {
     axios.get("/api/programs")
       .then(res => setPrograms(res.data))
       .catch(() => setPrograms([]));
     fetchBookings();
+    // eslint-disable-next-line
   }, []);
 
-  // Φέρνει το ιστορικό κρατήσεων του χρήστη
   const fetchBookings = () => {
     axios.get("/api/bookings/my", { headers: { Authorization: `Bearer ${user?.token}` } })
       .then(res => setMyBookings(res.data))
       .catch(() => setMyBookings([]));
   };
 
-  // Όταν αλλάξει πρόγραμμα, φέρνουμε τα slots του
   useEffect(() => {
     if (selected.program) {
       axios.get(`/api/programs/${selected.program}`)
@@ -36,27 +51,30 @@ export default function Bookings() {
     } else {
       setSlots([]);
     }
-    // Καθαρίζουμε το slot αν αλλάξει πρόγραμμα
     setSelected(s => ({ ...s, slot: "" }));
+    // eslint-disable-next-line
   }, [selected.program]);
 
-  // Υποβάλλει νέα κράτηση
   const handleBooking = () => {
     setMsg("");
     setError("");
-    if (!selected.program || !selected.slot || !selected.date) {
-      setError("Please select program, date, and slot.");
+    if (!selected.program || !selected.slot) {
+      setError("Please select program and slot.");
       return;
     }
-    // Βρίσκουμε το slot για να πάρουμε ώρα/μέρα
     const slotObj = slots.find(s => s._id === selected.slot);
     if (!slotObj) {
       setError("Invalid slot selection.");
       return;
     }
+    const nextDate = getNextDateOfWeek(slotObj.day);
+    if (!nextDate) {
+      setError("Could not determine next date for this slot.");
+      return;
+    }
     axios.post("/api/bookings", {
       programId: selected.program,
-      scheduleDate: selected.date,
+      scheduleDate: nextDate,
       day: slotObj.day,
       time: slotObj.time,
       slotId: selected.slot
@@ -68,7 +86,6 @@ export default function Bookings() {
     }).catch(err => setError(err.response?.data?.message || "Booking error."));
   };
 
-  // Ακυρώνει κράτηση
   const handleCancel = (id) => {
     setMsg("");
     setError("");
@@ -104,19 +121,12 @@ export default function Bookings() {
           </option>
         )}
       </select>
-      {/* Επιλογή ημερομηνίας */}
-      <input
-        type="date"
-        value={selected.date}
-        onChange={e => setSelected(s => ({ ...s, date: e.target.value }))}
-        disabled={!selected.slot}
-      />
+      {/* Δεν υπάρχει input ημερομηνίας */}
       <button onClick={handleBooking}>Book</button>
       {msg && <div style={{ color: "green" }}>{msg}</div>}
       {error && <div style={{ color: "red" }}>{error}</div>}
 
       <h2>My Bookings</h2>
-      {/* Εμφάνιση ιστορικού */}
       {myBookings.length === 0 && <div>No bookings found.</div>}
       {myBookings.map(b => (
         <div key={b._id}>
@@ -125,7 +135,6 @@ export default function Bookings() {
           {b.cancelled && <span> (Cancelled)</span>}
         </div>
       ))}
-      {/* Προαιρετικά: εμφάνιση προειδοποίησης αν ο χρήστης έχει 2 ακυρώσεις στην εβδομάδα */}
     </div>
   );
 }
