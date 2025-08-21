@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
  * Σχήμα χρήστη για το σύστημα κρατήσεων γυμναστηρίου.
  * - Το πεδίο 'status' δείχνει αν ο χρήστης είναι pending, approved ή rejected.
  * - Το πεδίο 'role' είναι είτε 'user' είτε 'admin'.
+ * - Το πεδίο 'blockedUntil' δηλώνει έως πότε είναι μπλοκαρισμένος λόγω ακυρώσεων.
  */
 
 const UserSchema = new mongoose.Schema({
@@ -24,7 +25,10 @@ const UserSchema = new mongoose.Schema({
    * - 'approved': Εγκρίθηκε (ενεργός χρήστης)
    * - 'rejected': Απορρίφθηκε από διαχειριστή
    */
-  status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' }
+  status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+
+  //μπλοκάρισμα λόγω ακυρώσεων (μέχρι πότε;)
+  blockedUntil: { type: Date, default: null }
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', UserSchema);

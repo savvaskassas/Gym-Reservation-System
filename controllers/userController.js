@@ -26,7 +26,8 @@ exports.registerUser = async (req, res) => {
       email,
       username,
       password: hashedPassword,
-      status: 'pending'
+      status: 'pending',
+      blockedUntil: null // προστίθεται για συμβατότητα με το schema
     });
 
     await user.save();
@@ -65,7 +66,7 @@ exports.approveUser = async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(
       req.params.id,
-      { status: 'approved', role: req.body.role || 'user' },
+      { status: 'approved', role: req.body.role || 'user', blockedUntil: null }, // reset blocked on approval
       { new: true }
     );
     if (!user) return res.status(404).json({ message: 'User not found.' });
@@ -81,7 +82,7 @@ exports.rejectUser = async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(
       req.params.id,
-      { status: 'rejected' },
+      { status: 'rejected', blockedUntil: null }, // reset blocked on rejection
       { new: true }
     );
     if (!user) return res.status(404).json({ message: 'User not found.' });
@@ -92,7 +93,7 @@ exports.rejectUser = async (req, res) => {
   }
 };
 
-// Σύνδεση χρήστη (επιτρέπεται μόνο αν είναι εγκεκριμένος)
+// Σύνδεση χρήστη (επιτρέπεται μόνο αν είναι εγκεκριμένος και όχι μπλοκαρισμένος)
 exports.loginUser = async (req, res) => {
   const { username, password } = req.body;
   try {
@@ -103,6 +104,11 @@ exports.loginUser = async (req, res) => {
     // Έλεγχος αν είναι εγκεκριμένος
     if (user.status !== 'approved') {
       return res.status(403).json({ message: 'Your account has not been approved yet.' });
+    }
+
+    // Έλεγχος αν είναι μπλοκαρισμένος λόγω ακυρώσεων
+    if (user.blockedUntil && new Date() < user.blockedUntil) {
+      return res.status(403).json({ message: 'Your account is temporarily blocked due to excessive cancellations.' });
     }
 
     // Έλεγχος κωδικού

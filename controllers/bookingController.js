@@ -1,5 +1,6 @@
 const Booking = require('../models/Booking');
 const Program = require('../models/Program');
+const User = require('../models/User'); // Για ελέγχους admin/blocked
 
 // Βοηθητική για έλεγχο αν απέχουμε λιγότερο από 2 ώρες
 function isWithinTwoHours(date) {
@@ -25,6 +26,12 @@ exports.createBooking = async (req, res) => {
     const { programId, scheduleDate, day, time } = req.body;
     const userId = req.user.id;
 
+    // Έλεγχος αν ο χρήστης είναι μπλοκαρισμένος λόγω ακυρώσεων
+    const user = await User.findById(userId);
+    if (user.blockedUntil && new Date() < user.blockedUntil) {
+      return res.status(403).json({ message: 'Your account is temporarily blocked due to excessive cancellations.' });
+    }
+
     // Υπολόγισε την εβδομάδα της ζητούμενης κράτησης
     const { start, end } = getWeekRange(scheduleDate);
 
@@ -35,6 +42,8 @@ exports.createBooking = async (req, res) => {
       cancelledAt: { $gte: start, $lte: end }
     });
     if (cancellations >= 2) {
+      // Μπλοκάρισμα για το υπόλοιπο της εβδομάδας
+      await User.findByIdAndUpdate(userId, { blockedUntil: end });
       return res.status(400).json({ message: 'You have reached the cancellation limit (2 per week). You cannot make a new booking for this week.' });
     }
 
@@ -110,6 +119,12 @@ exports.cancelBooking = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to cancel this booking' });
     }
 
+    // Έλεγχος αν ο χρήστης είναι μπλοκαρισμένος λόγω ακυρώσεων
+    const user = await User.findById(req.user.id);
+    if (user.blockedUntil && new Date() < user.blockedUntil) {
+      return res.status(403).json({ message: 'Your account is temporarily blocked due to excessive cancellations.' });
+    }
+
     // Έλεγχος 2 ωρών
     if (isWithinTwoHours(booking.schedule.date)) {
       return res.status(400).json({ message: 'Cannot cancel less than 2 hours before start' });
@@ -125,6 +140,8 @@ exports.cancelBooking = async (req, res) => {
       cancelledAt: { $gte: start, $lte: end }
     });
     if (cancellations >= 2) {
+      // Μπλοκάρισμα για το υπόλοιπο της εβδομάδας
+      await User.findByIdAndUpdate(req.user.id, { blockedUntil: end });
       return res.status(400).json({ message: 'You have reached the cancellation limit (2 per week) for this week.' });
     }
 
@@ -135,5 +152,18 @@ exports.cancelBooking = async (req, res) => {
     res.json({ message: 'Booking cancelled' });
   } catch (error) {
     res.status(500).json({ message: 'Error cancelling booking' });
+  }
+};
+
+// ΝΕΟ: Εποπτεία/Αναφορές - όλες οι κρατήσεις (admin only)
+exports.getAllBookings = async (req, res) => {
+  try {
+    const bookings = await Booking.find()
+      .populate('user', 'firstName lastName username email')
+      .populate('program', 'name')
+      .sort({ createdAt: -1 });
+    res.json(bookings);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching all bookings' });
   }
 };
